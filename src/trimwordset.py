@@ -1,6 +1,9 @@
 import argparse
 import sys
+import os
 from typing import Optional
+
+import spacy
 
 
 def print_help() -> None:
@@ -24,6 +27,52 @@ def print_parsed_args(
     print(f"use_stopword_removal={use_stopword_removal}")
 
 
+def build_output_path(source_file: str) -> str:
+    base, ext = os.path.splitext(os.path.basename(source_file))
+    dir_ = os.path.dirname(source_file)
+    return os.path.join(dir_, f"trimmed{base}{ext}")
+
+
+def trim_wordset(
+    source_file: str,
+    output_file: str,
+    use_lemmatization: bool,
+    use_stopword_removal: bool,
+) -> None:
+    if not os.path.isfile(source_file):
+        print(f"Error: Source file '{source_file}' not found.")
+        sys.exit(1)
+
+    if not source_file.endswith(".txt"):
+        print("Error: Source file must be a .txt file.")
+        sys.exit(1)
+
+    if not output_file.endswith(".txt"):
+        print("Error: Output file must be a .txt file.")
+        sys.exit(1)
+
+    with open(source_file, "r") as f:
+        words = [line.strip() for line in f if line.strip()]
+
+    if use_lemmatization or use_stopword_removal:
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(" ".join(words))
+
+        trimmed = set()
+        for token in doc:
+            if use_stopword_removal and token.is_stop:
+                continue
+            word = token.lemma_ if use_lemmatization else token.text
+            trimmed.add(word.lower())
+    else:
+        trimmed = set(words)
+
+    with open(output_file, "w") as f:
+        f.write("\n".join(sorted(trimmed)))
+
+    print(f"Trimmed word set with {len(trimmed)} words saved to '{output_file}'")
+
+
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] == "--help":
         print_help()
@@ -40,7 +89,20 @@ def main() -> None:
     output_file = args.output
     use_lemmatization = args.lemmatize
     use_stopword_removal = args.remove_stopwords
-    print_parsed_args(source_file, output_file, use_lemmatization, use_stopword_removal)
+
+    if not source_file:
+        print("Error: -s (source file) is required.")
+        print_help()
+        sys.exit(1)
+
+    out = output_file if output_file else build_output_path(source_file)
+
+    trim_wordset(
+        source_file,
+        out,
+        use_lemmatization=bool(use_lemmatization),
+        use_stopword_removal=bool(use_stopword_removal),
+    )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 import argparse
 import sys
+import os
+import re
+import pandas as pd
 from typing import Optional
 
 
@@ -15,6 +18,36 @@ def print_parsed_args(source_file: Optional[str], output_file: Optional[str]) ->
     print(f"output_file={output_file}")
 
 
+def derive_wordset(source_file: str, output_file: str) -> None:
+    if not os.path.isfile(source_file):
+        print(f"Error: Source file '{source_file}' not found.")
+        sys.exit(1)
+
+    if not source_file.endswith(".csv"):
+        print("Error: Source file must be a .csv file.")
+        sys.exit(1)
+
+    if not output_file.endswith(".txt"):
+        print("Error: Output file must be a .txt file.")
+        sys.exit(1)
+
+    df = pd.read_csv(source_file)
+
+    if "description" not in df.columns:
+        print("Error: Source file must contain a 'description' column.")
+        sys.exit(1)
+
+    wordset = set()
+    for desc in df["description"].dropna():
+        words = re.findall(r"[a-zA-Z]+", desc.lower())
+        wordset.update(w for w in words if 3 <= len(w) <= 20)
+
+    with open(output_file, "w") as f:
+        f.write("\n".join(sorted(wordset)))
+
+    print(f"Word set with {len(wordset)} words saved to '{output_file}'")
+
+
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] == "--help":
         print_help()
@@ -27,7 +60,18 @@ def main() -> None:
 
     source_file = args.source
     output_file = args.output
-    print_parsed_args(source_file, output_file)
+
+    if not source_file:
+        print("Error: -s (source file) is required.")
+        print_help()
+        sys.exit(1)
+
+    if not output_file:
+        print("Error: -o (output file) is required.")
+        print_help()
+        sys.exit(1)
+
+    derive_wordset(source_file, output_file)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,13 @@
+# Generated data files
+formattedlinkedin-jobs-usa.csv
+wordset.txt
+trimmedwordset.txt
+linkedin-jobs-usa.csv
+
+# Raw data (large file, should be downloaded separately per the README)
+linkedin-jobs-usa.csv
+
+# Python
+__pycache__/
+*.pyc
+.DS_Store
