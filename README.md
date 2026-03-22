@@ -20,6 +20,10 @@ Take the target [.csv] data-table as, assign a Job Id to each job listing, and o
 
 > $ ./manager.sh format -s [source file] -o [output file]
 
+or 
+
+> $ ./manager.sh format --help
+
 ### -s (required)
 
 Specifies the source file. **Must be a .csv file.**
@@ -28,6 +32,10 @@ Specifies the source file. **Must be a .csv file.**
 ### -o (optional)
 
 Specifies the output file. **Must be a .csv file.** If no output file name is given, the output file will be have the same name as the input file with "formatted" appended to it.
+
+### --help (optional)
+
+Prints out the instructions for how to use the format command.
 
 #### Examples
 
@@ -47,13 +55,21 @@ Takes the [.csv] dataset (with or without the Job ID Column), combines all the w
 
 > $ ./manager.sh wordset -s [source file] -o [output file]
 
+or 
+
+> $ ./manager.sh wordset --help
+
 ### -s (required)
 
 Specifies the source file. **Must be a .csv file.**
 
 ### -o (required)
 
-Specifies the output file. **Must be a .csv file.**
+Specifies the output file. **Must be a .txt file.**
+
+### --help (optional)
+
+Prints out the instructions for how to use the wordset command.
 
 #### Examples
 
@@ -66,7 +82,11 @@ Specifies the output file. **Must be a .csv file.**
 
 Takes the word set and trims the set using lemmatizaton and stopword removal
 
-$ ./manager.sh trimwordset -s wordset.txt -o outputfile.txt-l -w
+$ ./manager.sh trimwordset -s [wordset] -o [output file] -l -w
+
+or 
+
+$ ./manager.sh trimwordset --help
 
 ### -s (required)
 
@@ -86,6 +106,10 @@ Trims the word set using stopword removal
 
 **If you don't use any -l or -w flags, the wordset will not change**
 
+### --help (optional)
+
+Prints out the instructions for how to use the trimwordset command.
+
 #### Examples
 
 ```
@@ -101,11 +125,88 @@ $ ./manager.sh trimwordset -s wordset.txt -o trimmedwordset.txt -w
 ```
 # trims the word set only using lemmatization and outputs to "trimmedwordset.txt"
 $ ./manager.sh trimwordset -s wordset.txt -o trimmedwordset.txt -l
-``` 
+```
 
 ```
 # does not trim the word set but outputs to "trimmedwordset.txt"
 $ ./manager.sh trimwordset -s wordset.txt -o trimmedwordset.txt
 ```
 ^ this is technically allowed but does nothing and will just copy the source file to the output file.
+
+## 4. Vectorize Dataset
+
+Takes the dataset and the word set and vectorizes the dataset. Each job description is converted into a vector where each value represents the relative frequency of a word from the word set in the job description (fractional of total words in the description). The output is a .csv file where each row is a job listing and each column is a word from the word set.
+
+> $ ./manager.sh vectorize -d [dataset file] -w [word set file] -o [output file]
+
+or 
+
+> $ ./manager.sh vectorize --help
+
+### -d (required)
+
+Specifies the dataset file. **Must be a .csv file.**
+
+### -w (required)
+
+Specifies the word set file. **Must be a .txt file.**
+
+### -o (optional)
+
+Specifies the output file. **Must be a .csv file.** If there is no output file specified, the output file will have the same name as the dataset file but starting with "vectorized".
+
+### --help (optional)
+
+Prints out the instructions for how to use the vectorize command.
+
+#### Examples
+
+```
+# vectorizes the dataset "dataset.csv" using the word set "wordset.txt" and outputs to "vectorized_dataset.csv"
+> $ ./manager.sh vectorize -d dataset.csv -w wordset.txt -o vectorized_dataset.csv
+```
+
+```
+# vectorizes the dataset "dataset.csv" using the word set "wordset.txt" and outputs to "vectorizeddataset.csv"
+> $ ./manager.sh vectorize -d dataset.csv -w wordset.txt
+```
+
+## 5. Cluster Data
+
+Run K-mean algorithm using Scikit-learn on the vectorized dataset using multiple k values.The output is a .csv file where each row is a job listing and there is a new column for each k value with the cluster assignment for that k value. The program will constantly print out the average squared Euclidean distance for each k value to the terminal as it runs. Once the program finishes, the program will also spit out a graph of the average squared Euclidean distance for each k value to help determine the optimal k value, named the same as the output file but with a .png extension.
+
+> $ ./manager.sh cluster -d [dataset file] -o [output file] -k [maximum number of clusters]
+
+or 
+
+> $ ./manager.sh cluster --help
+
+### -d (required)
+
+Specifies the dataset file. **Must be a .csv file.**
+
+### -o (optional)
+
+Specifies the output file. **Must be a .csv file.** If there is no output file specified, the output file will have the same name as the dataset file but starting with "clustered".
+
+### -k (optional)
+
+Specifies the maximum number of clusters to use in the K-means algorithm. If there is no value specified for -k, the default maximum number of clusters will be 10.
+
+### --help (optional)
+
+Prints out the instructions for how to use the cluster command.
+
+#### Examples
+
+```
+# runs K-means on the dataset "dataset.csv" using k values from 5 to 10 and outputs to "clustered_dataset.csv"
+> $ ./manager.sh cluster -d dataset.csv -o clustered_dataset.csv -k 5
+```
+
+```
+# runs K-means on the dataset "dataset.csv" using k values from 5 to 10 and outputs to "clustereddataset.csv"
+> $ ./manager.sh cluster -d dataset.csv -k 5
+```
+
 
