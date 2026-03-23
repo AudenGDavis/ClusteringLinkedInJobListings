@@ -23,13 +23,16 @@ case "$command" in
   cluster)
     exec "$PYTHON_BIN" src/cluster.py "$@"
     ;;
+  inspect)
+    exec "$PYTHON_BIN" src/inspect_clusters.py "$@"
+    ;;
   "")
-    echo "Usage: ./manager.sh {format|wordset|trimwordset|vectorize|cluster} [args...]" >&2
+    echo "Usage: ./manager.sh {format|wordset|trimwordset|vectorize|cluster|inspect} [args...]" >&2
     exit 1
     ;;
   *)
     echo "Unknown command: $command" >&2
-    echo "Usage: ./manager.sh {format|wordset|trimwordset|vectorize|cluster} [args...]" >&2
+    echo "Usage: ./manager.sh {format|wordset|trimwordset|vectorize|cluster|inspect} [args...]" >&2
     exit 1
     ;;
 esac

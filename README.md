@@ -1,22 +1,26 @@
 # Clustering LinkedIn Job Listings
 
+### Presenation Link:
+
+https://docs.google.com/presentation/d/1TENSPCRmeyJR4EoO5cJjCyton3bUAcBwhlcu5R85FEw/edit?usp=sharing
+
 ## Overview
-The goal of this project is to use the [LinkedIn Data Analyst jobs listings](https://www.kaggle.com/datasets/cedricaubin/linkedin-data-analyst-jobs-listings/data) by [Cedric Aubin](https://www.kaggle.com/cedricaubin) to cluster and analyize descrptions for job listings in the US and Canada.
+The goal of this project is to use the [LinkedIn Job Postings (2023-2024)](https://www.kaggle.com/datasets/arshkon/linkedin-job-postings?select=postings.csv) dataset to cluster and analyze descriptions for job listings.
 
 This project used a central shell script, manager.sh, to preform the data science workflow for this project. 
 
 ### Project Contents
 
-1. **Formating Dataset**: download the US and Canada dataset and add a job ID Column.
+1. **Formating Dataset**: take the postings dataset and add a sequential job ID column.
 2. **Derive Word Set from Data**: Comb through the descriptions and aggregate all the words used.
 3. **Trim Word Set**: Take the raw word set and cut out unnecessary words (lemmatization and stop-word removal).
 4. **Vectorize Dataset**: Convert the job descriptions into vectors where each value represents the relative frequency of a word from the word set in the job description.
 5. **Cluster Data:** run the K-means algorithm using the vectorized dataset.
-6. **Visualize Data:** ...
+6. **Inspect Clusters:** print sample job descriptions from each cluster for a given k value.
 
 ## 1. Format dataset
 
-Take the target [.csv] data-table as, assign a Job Id to each job listing, and output a new [.csv] dataset with a new "Job ID" column.
+Take the target [.csv] data-table as, assign a Job Id to each job listing, and output a new [.csv] dataset with a new "job_id" column.
 
 > $ ./manager.sh format -s [source file] -o [output file]
 
@@ -51,7 +55,7 @@ Prints out the instructions for how to use the format command.
 
 ## 2. Derive Word Set from Data
 
-Takes the [.csv] dataset (with or without the Job ID Column), combines all the words into a set of all the words used. Returns a .txt file, separated by newline characters.
+Takes the [.csv] dataset (with or without the job_id column), combines all the words into a set of all the words used. Returns a .txt file, separated by newline characters.
 
 > $ ./manager.sh wordset -s [source file] -o [output file]
 
@@ -173,7 +177,7 @@ Prints out the instructions for how to use the vectorize command.
 
 ## 5. Cluster Data
 
-Run K-mean algorithm using Scikit-learn on the vectorized dataset using multiple k values.The output is a .csv file where each row is a job listing and there is a new column for each k value with the cluster assignment for that k value. The program will constantly print out the average squared Euclidean distance for each k value to the terminal as it runs. Once the program finishes, the program will also spit out a graph of the average squared Euclidean distance for each k value to help determine the optimal k value, named the same as the output file but with a .png extension.
+Run K-mean algorithm using Scikit-learn on the vectorized dataset using multiple k values.The output is a .csv file where each row is a job listing and there is a new column for each k value with the cluster assignment for that k value. The program will constantly print out the average squared Euclidean distance for each k value to the terminal as it runs. It will preform K-means on k=1 until k equals the maximum value of k. Once the program finishes, the program will also spit out a graph of the average squared Euclidean distance for each k value to help determine the optimal k value, named the same as the output file but with a .png extension.
 
 > $ ./manager.sh cluster -d [dataset file] -o [output file] -k [maximum number of clusters]
 
@@ -207,6 +211,44 @@ Prints out the instructions for how to use the cluster command.
 ```
 # runs K-means on the dataset "dataset.csv" using k values from 5 to 10 and outputs to "clustereddataset.csv"
 > $ ./manager.sh cluster -d dataset.csv -k 5
+```
+
+## 6. Inspect Clusters
+
+Prints 10 sample job descriptions from each cluster for a given k value. Takes the clustered .csv file (output of the cluster command) and the original dataset .csv file, joins them on job_id, and displays descriptions grouped by cluster.
+
+> $ ./manager.sh inspect -c [cluster file] -d [dataset file] -k [k value]
+
+or 
+
+> $ ./manager.sh inspect --help
+
+### -c (required)
+
+Specifies the clustered .csv file (output of the cluster command). **Must be a .csv file.**
+
+### -d (required)
+
+Specifies the original dataset .csv file. **Must be a .csv file.**
+
+### -k (required)
+
+Specifies the k value (number of clusters) to inspect.
+
+### --help (optional)
+
+Prints out the instructions for how to use the inspect command.
+
+#### Examples
+
+```
+# prints 10 job descriptions from each cluster for k=5
+> $ ./manager.sh inspect -c clustered-data/clustered.csv -d data/postings.csv -k 5
+```
+
+```
+# prints 10 job descriptions from each cluster for k=10
+> $ ./manager.sh inspect -c clustered-data/clustered.csv -d data/postings.csv -k 10
 ```
 
 

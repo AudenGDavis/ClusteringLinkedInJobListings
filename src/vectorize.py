@@ -42,6 +42,7 @@ def read_weird_csv(source_file: str) -> pd.DataFrame:
         "keep_default_na": False,
         "quotechar": '"',
         "doublequote": True,
+        "on_bad_lines": "skip",
     }
 
     try:
@@ -105,7 +106,7 @@ def find_column_name(df: pd.DataFrame, target: str) -> str:
 def build_vectorized_dataframe(
     df: pd.DataFrame, words: list[str], nlp: spacy.language.Language
 ) -> pd.DataFrame:
-    job_id_column = find_column_name(df, "job id")
+    job_id_column = find_column_name(df, "job_id")
     description_column = find_column_name(df, "description")
 
     # Lemmatize each word-set entry once so vector values are based on lemma frequency.
@@ -122,7 +123,7 @@ def build_vectorized_dataframe(
         total_terms = len(lemmas)
         lemma_counts = Counter(lemmas)
 
-        vector_row: Dict[str, Union[float, str]] = {"job id": str(row[job_id_column])}
+        vector_row: Dict[str, Union[float, str]] = {"job_id": str(row[job_id_column])}
         for word, word_lemma in zip(words, word_lemmas):
             if total_terms == 0:
                 vector_row[word] = 0.0

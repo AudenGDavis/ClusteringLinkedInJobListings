@@ -33,6 +33,7 @@ def read_weird_csv(source_file: str) -> pd.DataFrame:
         "keep_default_na": False,
         "quotechar": '"',
         "doublequote": True,
+        "on_bad_lines": "skip",
     }
 
     try:
@@ -45,10 +46,10 @@ def add_job_id_column(df: pd.DataFrame) -> pd.DataFrame:
     formatted_df = df.copy()
     job_ids = range(1, len(formatted_df) + 1)
 
-    if "Job ID" in formatted_df.columns:
-        formatted_df["Job ID"] = job_ids
+    if "job_id" in formatted_df.columns:
+        formatted_df["job_id"] = job_ids
     else:
-        formatted_df.insert(0, "Job ID", job_ids)
+        formatted_df.insert(0, "job_id", job_ids)
 
     return formatted_df
 
