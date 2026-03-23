@@ -1,8 +1,9 @@
 import argparse
-import sys
 import os
-import pandas as pd
+import sys
 from typing import Optional
+
+import pandas as pd
 
 
 def print_help() -> None:
@@ -12,31 +13,44 @@ def print_help() -> None:
     print("  -o (optional)  Output .csv file (default: 'formatted' prepended to source name)")
 
 
-def build_output_path(source_file: str) -> str:
-    base, ext = os.path.splitext(os.path.basename(source_file))
-    dir_ = os.path.dirname(source_file)
-    return os.path.join(dir_, f"formatted{base}{ext}")
+def print_parsed_args(source_file: Optional[str], output_file: Optional[str]) -> None:
+    print(f"source_file={source_file}")
+    print(f"output_file={output_file}")
 
 
-def format_dataset(source_file: str, output_file: Optional[str]) -> None:
-    if not os.path.isfile(source_file):
-        print(f"Error: Source file '{source_file}' not found.")
-        sys.exit(1)
+def default_output_path(source_file: str) -> str:
+    directory = os.path.dirname(source_file)
+    filename = os.path.basename(source_file)
+    return os.path.join(directory, f"formatted{filename}")
 
-    if not source_file.endswith(".csv"):
-        print("Error: Source file must be a .csv file.")
-        sys.exit(1)
 
-    out = output_file if output_file else build_output_path(source_file)
+def read_weird_csv(source_file: str) -> pd.DataFrame:
+    read_options = {
+        "sep": ",",
+        "engine": "python",
+        "dtype": str,
+        "na_filter": False,
+        "keep_default_na": False,
+        "quotechar": '"',
+        "doublequote": True,
+    }
 
-    if not out.endswith(".csv"):
-        print("Error: Output file must be a .csv file.")
-        sys.exit(1)
+    try:
+        return pd.read_csv(source_file, encoding="utf-8", **read_options)
+    except UnicodeDecodeError:
+        return pd.read_csv(source_file, encoding="latin-1", **read_options)
 
-    df = pd.read_csv(source_file)
-    df.insert(0, "Job ID", range(1, len(df) + 1))
-    df.to_csv(out, index=False)
-    print(f"Formatted dataset saved to '{out}'")
+
+def add_job_id_column(df: pd.DataFrame) -> pd.DataFrame:
+    formatted_df = df.copy()
+    job_ids = range(1, len(formatted_df) + 1)
+
+    if "Job ID" in formatted_df.columns:
+        formatted_df["Job ID"] = job_ids
+    else:
+        formatted_df.insert(0, "Job ID", job_ids)
+
+    return formatted_df
 
 
 def main() -> None:
@@ -45,20 +59,18 @@ def main() -> None:
         return
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", dest="source")
+    parser.add_argument("-s", dest="source", required=True)
     parser.add_argument("-o", dest="output", default=None)
     args = parser.parse_args()
 
     source_file = args.source
-    output_file = args.output
+    output_file = args.output or default_output_path(source_file)
+    print_parsed_args(source_file, output_file)
 
-    if not source_file:
-        print("Error: -s (source file) is required.")
-        print_help()
-        sys.exit(1)
-
-    format_dataset(source_file, output_file)
-
+    df = read_weird_csv(source_file)
+    formatted_df = add_job_id_column(df)
+    formatted_df.to_csv(output_file, index=False)
+    print(f"Wrote {len(formatted_df)} rows to {output_file}")
 
 if __name__ == "__main__":
     main()
